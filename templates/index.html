@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <title>test</title>
+  <meta name="renderer" content="webkit">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <link rel="stylesheet" href="../static/layui/css/layui.css" tppabs="http://res.layui.com/layui/dist/css/layui.css"
+    media="all">
+</head>
+
+<body style="height: 100%;padding: 0;margin: 0;">
+  <div id="content" style="border: 1px solid red;">
+    <div style="width: 480px; border: 1px solid rgb(43, 255, 0);">
+      <h1 style="text-align:center;">中国象棋机器人</h1>
+    </div>
+    <div style="border: 1px solid rgb(43, 255, 0); ">
+      <div id="video" style="float:left; border: 1px solid rgb(43, 255, 0);">
+        <img src="{{ url_for('video_feed') }}" height="640" width="480">
+      </div>
+      <div style="width: 280px; float:left; border: 1px solid black; margin-left: 10px; margin-top: 50px">
+        <div id="video" style="display:flex;flex-direction: row;justify-content: flex-start;">
+          <input type="text" id="input_text" required lay-verify="required" placeholder="请输入" autocomplete="off"
+            class="layui-input">
+          <button type="button" class="layui-btn" lay-filter="demo1" id="submit_button" style="margin-left: 10px;"
+            onclick="submit_button()">提交</button>
+        </div>
+        <div style="margin-top: 15px;border: 1px solid black;">
+          <div>
+            <p style="text-align: center;">hough Circles Dete Threshold</p>
+            <div id="slide1" class="demo-slider" style="height: 30px;margin-top: 15px;"></div>
+          </div>
+          <div>
+            <p style="text-align: center;">robot Dete Threshold</p>
+            <div id="slide2" class="demo-slider" style="height: 30px;margin-top: 15px;"></div>
+          </div>
+          <div>
+            <p style="text-align: center;">color Classify Threshold</p>
+            <div id="slide3" class="demo-slider" style="height: 30px;margin-top: 15px;"></div>
+          </div>
+        </div>
+        <div style="width: 280px; margin-top: 15px; border: 1px solid black;">
+          <button type="button" class="layui-btn" lay-filter="test1" id="test1" style="margin-left: 50px;"
+            onclick="test1_button()">测试1</button>
+          <button type="button" class="layui-btn" lay-filter="test2" id="test2" style="margin-left: 20px;"
+            onclick="test2_button()">测试2</button>
+        </div>
+        <div style="margin-top: 15px;">
+          <p style="width:280px;text-align: center;">日志输出</p>
+          <textarea id="textarea" required lay-verify="required" placeholder="程序日志" class="layui-textarea" readonly=""
+            style="resize: none;height: 200px;"></textarea>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script type="text/javascript" src="../static/layui/layui.js"></script>
+  <script type="text/javascript" src="../static/jquery-3.1.0.min.js"></script>
+  <!-- <script type="text/javascript" src="../static/socket.io.min.js"></script> -->
+  <script type="text/javascript">
+    layui.use(['form', 'layer', 'slider'], function () {
+      var form = layui.form
+        , layer = layui.layer
+        , layedit = layui.layedit
+        , slider = layui.slider
+        , $ = layui.$;
+      slider.render({
+        elem: '#slide1'
+        , value: '{{slider1_num}}'
+        , input: true
+        , max: 400
+        , change: function (value) {
+          console.log('slider1'+value)
+          $.ajax({
+            url: '/slider1',
+            type: 'GET',
+            data: { 'value': value },
+            dataType: 'json',
+            async: false,
+          });
+        }
+      });
+      slider.render({
+        elem: '#slide2'
+        , value: '{{slider2_num}}'
+        , input: true
+        , max: 400
+        , change: function (value) {
+          console.log('slider2'+value)
+          $.ajax({
+            url: '/slider2',
+            type: 'GET',
+            data: { 'value': value },
+            dataType: 'json',
+            async: false,
+          });
+        }
+      });
+      slider.render({
+        elem: '#slide3'
+        , value: '{{slider3_num}}'
+        , input: true
+        , max: 400
+        , change: function (value) {
+          console.log('slider3'+value)
+          $.ajax({
+            url: '/slider3',
+            type: 'GET',
+            data: { 'value': value },
+            dataType: 'json',
+            async: false,
+          });
+        }
+      });
+    });
+    var input_text = document.getElementById("input_text")
+    function submit_button() {
+      console.log(input_text.value);
+      $.ajax({
+        url: '/index',
+        type: 'GET',
+        data: { 'input_text': input_text.value },
+        dataType: 'json',
+        async: true,
+      });
+    }
+    function test1_button() {
+      console.log('test1');
+      $.ajax({
+        url: '/test',
+        type: 'GET',
+        data: { 'test': '1' },
+        dataType: 'json',
+        async: true,
+      });
+    }
+    function test2_button() {
+      console.log('test2');
+      $.ajax({
+        url: '/test',
+        type: 'GET',
+        data: { 'test': '2' },
+        dataType: 'json',
+        async: true,
+      });
+    }
+    // send server event（SSE）使用方法
+    var oldvalue = "";
+    var textarea_text = document.getElementById('textarea')
+    var source = new EventSource('/stream2');
+    source.onmessage = function (e) {
+      var ndata = JSON.parse(e.data);
+      var height = $("#textarea")[0].scrollHeight;
+      var totalvalue = oldvalue + ndata.message + '\n';
+      textarea_text.value = totalvalue;
+      $("#textarea").scrollTop(height);
+      oldvalue = totalvalue;
+    };
+    // websocket使用方法
+    // var oldvalue = "";
+    // $(document).ready(function () {
+    //   namespace = '/test_conn';
+    //   var socket = io.connect(location.protocol + '//' + document.domain + ':' + location.port + namespace);
+    //   socket.on('server_response', function (res) {
+    //     console.log(res.data)
+    //   });
+    // });
+  </script>
+</body>
+</html>
